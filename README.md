@@ -1,56 +1,42 @@
-# Modèle d'extension SuiteCRM
+# Personnalisation de l'interface
 
-Point de départ de toute extension des projets SuiteCRM : on ne modifie jamais le code de
-SuiteCRM, on lui ajoute des extensions. Ce dépôt contient une extension d'exemple
-(`exemple`) qui passe toutes les vérifications : on la remplace par la sienne.
+Extension SuiteCRM 8 qui adapte l'interface aux usages français, sans recompiler le front
+de SuiteCRM : un **module Angular** que SuiteCRM charge au démarrage de l'interface.
 
-## Créer une extension
+Aujourd'hui : **les montants s'affichent avec le symbole après le nombre**, « 67 300,00 € »
+au lieu de « €67 300,00 », partout où SuiteCRM affiche un montant. Les séparateurs restent
+ceux réglés dans SuiteCRM (espace pour les milliers, virgule pour les décimales).
 
-1. Sur GitHub, **Use this template → Create a new repository**, nommé
-   `suitecrm-ext-<slug>` (ex. `suitecrm-ext-siret-validation`).
-2. Le cloner, puis lancer `make` : le devkit s'installe (Docker suffit, pas besoin de PHP).
-3. Remplacer l'exemple :
-   - `extension.json` : `slug`, nom, description en mots métier, types ;
-   - `composer.json` : `name` en `…/suitecrm-ext-<slug>`, description ;
-   - `legacy/include/exemple/`, `tests/ExempleTest.php` : son code et ses tests.
-4. Vérifier, comme le fera la CI :
+## Activer
+
+Dans le `.env.local` de l'instance, ajouter `front-customizer` à `EXTENSIONS`, puis
+redémarrer. Recharger l'interface (Ctrl+F5) : la console du navigateur affiche
+`front-customizer : chargé`.
+
+## Modifier le module
+
+| Dossier | Contenu |
+|---|---|
+| `app/` | les sources du module Angular (`app/src/extension.module.ts`) |
+| `public/` | le module construit, **commité** : suitecrm-core l'installe tel quel |
+| `config/extension.php` | la déclaration du module à SuiteCRM (`remoteEntry`, `remoteName`) |
+
+Après toute modification de `app/` :
 
 ```bash
-make extension@validate   # format : manifeste, composer.json, place des fichiers
-make quality@lint         # style du code, scripts
-make quality@stan         # analyse statique (PHPStan, niveau max)
-make test@unit            # tests unitaires (PHPUnit)
+make front@build   # construit public/ contre les sources de SuiteCRM (Docker, Node 22)
 ```
 
-5. Pousser une branche et ouvrir une pull request : un développeur la relit avant le merge.
+puis commiter `app/` **et** `public/` ensemble : la CI reconstruit le module
+(`make front@check`) et refuse un `public/` qui ne correspond pas à `app/`. La première
+construction télécharge les sources de SuiteCRM et leurs dépendances (quelques minutes) ;
+les suivantes prennent moins d'une minute.
 
-## Où mettre quoi
+Bon à savoir : SuiteCRM crée le module mais n'appelle pas sa méthode `init()` ; ce qu'il
+doit faire au chargement se fait dans son constructeur.
 
-| Dossier | Copié dans SuiteCRM | Pour |
-|---|---|---|
-| `legacy/Extension/…` | `public/legacy/custom/Extension/…` | hooks, champs, libellés : SuiteCRM les assemble au Quick Repair. Le slug figure dans chaque nom de fichier (ex. `legacy/Extension/application/Ext/LogicHooks/<slug>.php`) |
-| `legacy/include/<slug>/` | `public/legacy/custom/include/<slug>/` | les classes PHP appelées par les hooks : la logique, testée sans SuiteCRM |
-| `backend/`, `config/` | `extensions/<slug>/` | la couche SuiteCRM 8 (services Symfony), chargée automatiquement |
-| `database/seeders/` | — | ses données de démo, chargées par le seed des démos |
-| `tests/` | — | ses tests unitaires |
+## Vérifier
 
-`make extension@validate` refuse un fichier rangé ailleurs : deux extensions ne peuvent
-ainsi jamais écrire le même fichier.
-
-## Le manifeste `extension.json`
-
-| Clé | Contenu |
-|---|---|
-| `slug` | identifiant, en minuscules et tirets : le préfixe de tous ses fichiers |
-| `name` | nom, en français |
-| `description` | ce que fait l'extension, en mots métier (20 caractères au moins) |
-| `types` | parmi `logic-hook`, `fields`, `ui`, `scheduler`, `lang` |
-| `suitecrm` | versions de SuiteCRM compatibles, ex. `>=8.10 <9` |
-
-## Ce qui vient du devkit
-
-Les commandes `make`, la CI, les hooks Git, les règles de qualité et la signature des
-classes SuiteCRM pour PHPStan viennent de
-[suitecrm-devkit](https://github.com/david-grosskost/suitecrm-devkit), à la version de
-`composer.json`. Corriger une règle se fait dans le devkit, puis on monte sa version ici
-(`composer.json` et `.github/workflows/*.yml`, ensemble).
+```bash
+make extension@validate && make quality@lint && make quality@stan && make test@unit && make front@check
+```
