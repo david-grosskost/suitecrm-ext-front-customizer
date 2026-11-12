@@ -10,9 +10,8 @@
         "david-grosskost/suitecrm-devkit": "^0.22"
     },
     "autoload-dev": {
-        "classmap": ["legacy/include/"],
         "psr-4": {
-            "SuiteCrmExt\\Exemple\\Tests\\": "tests/"
+            "SuiteCrmExt\\FrontCustomizer\\Tests\\": "tests/"
         }
     },
     "repositories": [

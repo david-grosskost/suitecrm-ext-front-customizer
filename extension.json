@@ -1,7 +1,7 @@
 {
-    "slug": "exemple",
-    "name": "Exemple",
-    "description": "Extension d'exemple du modèle : à remplacer par ce que fait votre extension, en mots métier.",
-    "types": ["logic-hook"],
+    "slug": "front-customizer",
+    "name": "Personnalisation de l'interface",
+    "description": "Adapte l'interface de SuiteCRM 8 aux usages français : les montants s'affichent avec le symbole après le nombre (67 300,00 €).",
+    "types": ["ui"],
     "suitecrm": ">=8.10 <9"
 }
