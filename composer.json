@@ -1,6 +1,6 @@
 {
-    "name": "david-grosskost/suitecrm-ext-exemple",
-    "description": "Extension d'exemple du modèle des extensions SuiteCRM.",
+    "name": "david-grosskost/suitecrm-ext-front-customizer",
+    "description": "Personnalisation de l'interface de SuiteCRM 8 (module Angular) : montants au format français.",
     "type": "suitecrm-extension",
     "license": "proprietary",
     "require": {
